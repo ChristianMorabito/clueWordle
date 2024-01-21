@@ -1,0 +1,111 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f0f0f0;
+}
+
+hr {
+    width: 500px;
+    horiz-align: center;
+}
+
+#title {
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+    align-items: center;
+}
+
+#clueButton {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+#board {
+    /*padding: 200px;*/
+    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(8, 50px);
+    grid-template-rows: repeat(8, 50px);
+    gap: 2px;
+
+}
+
+.tile {
+    /* box */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+
+    /* text */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #fff;
+}
+
+.correct {
+    background-color: #6AAA64;
+    color: white;
+    border-color: white;
+}
+
+.present {
+    background-color: #C9B458;
+    color: white;
+    border-color: white;
+}
+
+.absent {
+    background-color: #787C7E;
+    color: white;
+    border-color: white;
+}
+
+.black {
+    background-color: #000000;
+    color: white;
+    border-color: white;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(0px);
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+.fade-in-up {
+    font-size: 30px;
+    opacity: 1;
+    animation: fadeInUp 2s ease-in forwards;
+    text-align: center;
+}
+
+.fade-in-out {
+    font-size: 30px;
+    opacity: 1;
+    animation: fadeInOut 3s ease-in-out forwards;
+    text-align: center;
+}
