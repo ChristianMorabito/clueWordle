@@ -1,14 +1,25 @@
-const HEIGHT = 8; // number of guesses
-const WIDTH = 8; // length of the word
+"use strict";
+
+
+const HEIGHT = 8;
+const WIDTH = 7;
 const CLUE_MAX= 3;
+let current = null;
 
 let row = 0;  // current guess (attempt no.)
 let col = 0; // current letter position in current attempt
 
 let gameWon = false;
 let gameOver = false;
-let word = "ANIMALIA";
-let current = null;
+let word = "ANIMALI";
+
+const data = {
+    start: 0,
+    end: word.length,
+    array: Array.from({ length: word.length }, () => false),
+    correct: 0
+};
+
 
 const clue = {
     count : 0,
@@ -29,6 +40,14 @@ class Current {
         this.available = [];
         this.unavailable = new Set();
         this.pool = [];
+    }
+}
+
+function clear() {
+    for (let i = 0; i < word.length; i++) {
+        let tile = document.getElementById((row + 1).toString() + "-" + i.toString());
+        tile.classList.remove("correct");
+        tile.innerText = " ";
     }
 }
 
@@ -54,10 +73,11 @@ function initialize() {
     document.addEventListener("keyup", keyPress);
 }
 
-function postValidate(allCorrect) {
+function postValidate() {
 
-    if (allCorrect) {
+    if (data.correct === word.length) {
         gameWon = gameOver = true;
+        if (row < HEIGHT-1) clear();
         return;
     }
     row++;
@@ -67,26 +87,49 @@ function postValidate(allCorrect) {
         return;
     }
 
-    col = 0;
+    col = data.start;
 
 }
 
+function clueSort() {
+    let sortedArray = [...current.charMap.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]));
+    let charArray = [];
+    for (let i = 0; i < sortedArray.length; i++) {
+        let currChar = sortedArray[i][0];
+        let charTotal = sortedArray[i][1];
 
+        for (let j = 0; j < current.pool.length; j++) {
+            if (current.pool[j] === null) continue;
+            let poolChar = current.pool[j].char
+            if (poolChar === currChar) {
+                charArray.push(current.pool[j])
+                current.pool[j] = null;
+                charTotal--;
+                if (charTotal === 0) break;
 
+            }
+        }
+    }
+    current.pool = charArray;
+}
 
 function clueExecute() {
     if (current.toSort) {
-        let sortedArray = [...current.charMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-        // TODO: FIX THIS
-
+        clueSort();
     }
     // 1) default fill all blocks black
     for (let i = 0; i < WIDTH; i++) {
         let aboveTile = document.getElementById((row-1).toString() + "-" + i.toString());
         let currTile = document.getElementById(row.toString() + "-" + i.toString());
-        if (aboveTile.classList.contains("correct")) {
+        if (data.array[i]) {
             currTile.innerText = aboveTile.innerText;
             currTile.classList.add("correct");
+            if (row < HEIGHT-1) {
+                let belowTile = document.getElementById((row+1).toString() + "-" + i.toString());
+                belowTile.innerText = aboveTile.innerText;
+                belowTile.classList.add("correct");
+            }
         } else {
             currTile.classList.add("black");
         }
@@ -139,9 +182,10 @@ function clueExecute() {
 }
 
 function keyPress(e) {
+
     if (gameOver) return;
 
-    if (e.code === "Enter" && col === word.length) {
+    if (e.code === "Enter" && col === data.end) {
         validate();
         if (gameOver) {
             let textGameOver = document.getElementById("message");
@@ -150,8 +194,6 @@ function keyPress(e) {
 
         }
     } else if (e.code === "Space") {
-
-
         let textSpace = document.getElementById("message");
         textSpace.innerText = clue.count === CLUE_MAX ? "No clues left!" :
                               clue.valid === 0 ? "No yellow blocks present!" :
@@ -167,35 +209,64 @@ function keyPress(e) {
             document.body.appendChild(resetTextSpace);
         }, 3000);
 
-    } else if (col > 0 && e.code === "Backspace") {
+    } else if (col > data.start && e.code === "Backspace") {
         col--;
         let currTile = document.getElementById(row.toString() + "-" + col.toString())
+        while (data.array[col] === true && col > data.start) {
+            col--;
+            currTile = document.getElementById(row.toString() + "-" + col.toString());
+        }
         currTile.innerText = " ";
 
-    } else if ( (col < WIDTH) && e.code >= "KeyA" && e.code <= "KeyZ") {
+
+    } else if ( col < data.end && e.code >= "KeyA" && e.code <= "KeyZ" ) {
         let currTile = document.getElementById(row.toString() + "-" + col.toString())
+        while (data.array[col] === true && col < data.end) {
+            col++;
+            currTile = document.getElementById(row.toString() + "-" + col.toString());
+        }
         currTile.innerText = e.code[3];
         col++;
+
     }
+
+}
+
+function findPosition(direction, i) {
+
+    while (data.array[i]) {
+        direction === "start" ? i++ : i--;
+    }
+
+    data[direction] = direction === "start" ? i : ++i;
 
 }
 
 function validate() {
     let wordMap = createWordMap();
-    // create condition for if word in list
-    let allCorrectCheck = true;
     //sweep 1) first check for correct/incorrect guesses
-    for (let i = 0; i < WIDTH; i++) {
+    for (let i = 0; i < word.length; i++) {
         let tile = document.getElementById(row.toString() + "-" + i.toString());
         let guessChar = tile.innerText;
         let answerChar = word[i];
         if (guessChar === answerChar) {
             wordMap.set(guessChar, wordMap.get(guessChar) - 1);
             tile.classList.add("correct");
+            if (row < HEIGHT-1) {
+                let belowTile = document.getElementById((row+1).toString() + "-" + i.toString());
+                belowTile.classList.add("correct");
+                belowTile.innerText = answerChar;
+            }
+
+            if (!data.array[i]) {
+                data.array[i] = true;
+                data.correct++;
+                if (i === data.start) findPosition("start", i);
+                else if (data.correct < word.length && i === data.end - 1) findPosition("end", i); //TODO: when data.start & data.end meet, then that could be the indicator for game over
+            }
 
         } else {
             tile.classList.add("absent");
-            allCorrectCheck = false;
         }
     }
     current = new Current();  // create current object to store yellow & grey data
@@ -203,7 +274,7 @@ function validate() {
     //sweep 2) now check for all guesses that are 'present but in diff. position'
     clue.valid = 0;
     document.getElementById("clueButton").innerText = "clue: ❌";
-    for (let i = 0; i < WIDTH; i++) {
+    for (let i = data.start; i < data.end; i++) {
         let tile = document.getElementById(row.toString() + "-" + i.toString());
         let guessChar = tile.innerText;
         let answerChar = word[i];
@@ -217,14 +288,13 @@ function validate() {
             clue.valid = 1;
             if (clue.count < CLUE_MAX) {
                 document.getElementById("clueButton").innerText = "clue: ✅";
-
-            } else if (guessChar !== answerChar && !wordMap.has(guessChar)) {
+            }
+        } else if (guessChar !== answerChar && !wordMap.has(guessChar)) {
             current.available.push(i);
-        }
 
         }
     }
-    postValidate(allCorrectCheck);
+    postValidate();
 }
 
 function setCharinMap(char, argMap) {

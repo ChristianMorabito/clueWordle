@@ -25,7 +25,7 @@ hr {
     /*padding: 200px;*/
     justify-content: center;
     display: grid;
-    grid-template-columns: repeat(8, 50px);
+    grid-template-columns: repeat(7, 50px);
     grid-template-rows: repeat(8, 50px);
     gap: 2px;
 
@@ -108,4 +108,28 @@ hr {
     opacity: 1;
     animation: fadeInOut 3s ease-in-out forwards;
     text-align: center;
+}
+
+#keyboard {
+    /*padding: 200px;*/
+    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(7, 50px);
+    grid-template-rows: repeat(8, 50px);
+    gap: 2px;
+
+}
+
+.key {
+    /* box */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+
+    /* text */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #fff;
 }
